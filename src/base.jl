@@ -149,6 +149,8 @@ File{RFMT<:DataFormat, VT<:File}(::Type{RFMT}, v::Vector{VT}) = map((f)->File(RF
 
 #==Generate friendly show functions
 ===============================================================================#
+Base.string(f::File) = f.path
+
 for fmt in fmtsymblist
 	eval(genexpr_ShowSimpleFileSign(fmt))
 end
