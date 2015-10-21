@@ -37,13 +37,13 @@ abstract VectorImageFormat{E<:DataEncoding} <: ImageFormat{E}
 #File object definitions
 #-------------------------------------------------------------------------------
 type File{T<:DataFormat}
-	path::String
+	path::AbstractString
 end
 typealias UnknownFileFormat File{UnknownDataFormat}
 
 #Handy way to construct file objects:
-File{T}(::Type{T}, path::String) = File{T}(path)
-File(path::String) = info("TODO: Implement filetype auto-detection")
+File{T}(::Type{T}, path::AbstractString) = File{T}(path)
+File(path::AbstractString) = info("TODO: Implement filetype auto-detection")
 
 
 #==Text format definitions

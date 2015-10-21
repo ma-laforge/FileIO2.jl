@@ -25,7 +25,7 @@ pollutes the symbol namespace - making collisions between modules highly likely.
 
 Extensive compatibility testing of FileIO2.jl has not been performed.  The module has been tested using the following environment(s):
 
- - Linux / Julia-0.3.6.
+ - Linux / Julia-0.4.0.
 
 ## Disclaimer
 
