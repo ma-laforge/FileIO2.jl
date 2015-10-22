@@ -29,6 +29,10 @@ abstract UTF32Encoding <: Unicode
 abstract DataFormat;
 abstract UnknownDataFormat <: DataFormat
 
+#Define generic interface for user-defined reader/writer state-machines:
+abstract AbstractReader{T<:DataFormat}
+abstract AbstractWriter{T<:DataFormat}
+
 #Image formats:
 abstract ImageFormat{E<:DataEncoding} <: DataFormat
 abstract PixelImageFormat{E<:DataEncoding} <: ImageFormat{E}
@@ -145,6 +149,10 @@ File{E<:TextEncoding}(::Type{TextFormat}, f::File{HTMLFormat{E}}) = File(TextFor
 
 #Casting on Vector{File} to arbitrary data format:
 File{RFMT<:DataFormat, VT<:File}(::Type{RFMT}, v::Vector{VT}) = map((f)->File(RFMT, f), v)
+
+
+#==Generic Load/save open/close functions
+===============================================================================#
 
 
 #==Generate friendly show functions
