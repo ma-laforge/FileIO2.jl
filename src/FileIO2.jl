@@ -20,7 +20,7 @@ export HTMLFmt, XMLFmt, MarkdownFmt, AsciiDocFmt
 export BMPFmt, PNGFmt, GIFFmt, JPEGFmt, TIFFFmt
 export SVGFmt, CGMFmt, EPSFmt, EMFFmt, STLImgFmt
 
-export AbstractReader, AbstractWriter
+export AbstractDataIO, AbstractReader, AbstractWriter, AbstractDataIORW
 #==Create your own reader/writer state machine using the following pattern:
 immutable MyDataType <: FileIO2.DataFormat; end
 type MyReader <: AbstractReader{MyDataType}

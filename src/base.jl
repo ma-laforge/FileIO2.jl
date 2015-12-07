@@ -26,8 +26,8 @@ abstract UTF32Encoding <: Unicode
 
 #==Generic data format/file definitions
 ===============================================================================#
-immutable Format{T}; end; #Temp: used to dispatch on symbol (ex: Format{:png})
-Format(datafmt::Symbol) = Format{datafmt}();
+immutable Shorthand{T}; end; #Temp: used to dispatch on symbol (ex: Shorthand{:png})
+Shorthand(datafmt::Symbol) = Shorthand{datafmt}();
 
 abstract DataFormat;
 abstract UnknownDataFormat <: DataFormat
@@ -48,9 +48,9 @@ typealias UnknownFileFormat File{UnknownDataFormat}
 File(path::AbstractString) = info("TODO: Implement filetype auto-detection")
 File{T<:DataFormat}(::Type{T}, path::AbstractString) = File{T}(path)
 #Shortcut to construct file object of default data format wrt symbol:
-File(datafmt::Symbol, path::AbstractString) = File(Format(datafmt), path)
-File{T<:Symbol}(::Format{T}, path::AbstractString) =
-	throw(ArgumentError("Unrecognized data format: File($T, ::AbstractString)"))
+File(datafmt::Symbol, path::AbstractString) = File(Shorthand(datafmt), path)
+File{T}(::Shorthand{T}, path::AbstractString) =
+	throw(ArgumentError("Unrecognized data format: File(:$T, ::AbstractString)"))
 
 
 #==Text format definitions
@@ -144,24 +144,24 @@ push!(fmtsymblist, :SVGFmt, :CGMFmt, :EPSFmt, :EMFFmt, :STLImgFmt)
 
 #==Default File object constructors
 ===============================================================================#
-File(::Format{:text}, path::AbstractString) = File{TextFmt}(path)
-File(::Format{:csv}, path::AbstractString) = File{CSVFmt}(path)
-File(::Format{:html}, path::AbstractString) = File{HTMLFmt}(path)
-File(::Format{:xml}, path::AbstractString) = File{XMLFmt}(path)
-File(::Format{:md}, path::AbstractString) = File{MarkdownFmt}(path)
-File(::Format{:adoc}, path::AbstractString) = File{AsciiDocFmt}(path)
+File(::Shorthand{:text}, path::AbstractString) = File{TextFmt}(path)
+File(::Shorthand{:csv}, path::AbstractString) = File{CSVFmt}(path)
+File(::Shorthand{:html}, path::AbstractString) = File{HTMLFmt}(path)
+File(::Shorthand{:xml}, path::AbstractString) = File{XMLFmt}(path)
+File(::Shorthand{:md}, path::AbstractString) = File{MarkdownFmt}(path)
+File(::Shorthand{:adoc}, path::AbstractString) = File{AsciiDocFmt}(path)
 
-File(::Format{:svg}, path::AbstractString) = File{SVGFmt}(path)
-File(::Format{:cgm}, path::AbstractString) = File{CGMFmt}(path)
-File(::Format{:eps}, path::AbstractString) = File{EPSFmt}(path)
-File(::Format{:emf}, path::AbstractString) = File{EMFFmt}(path)
-File(::Format{:stl}, path::AbstractString) = File{STLImgFmt}(path)
+File(::Shorthand{:svg}, path::AbstractString) = File{SVGFmt}(path)
+File(::Shorthand{:cgm}, path::AbstractString) = File{CGMFmt}(path)
+File(::Shorthand{:eps}, path::AbstractString) = File{EPSFmt}(path)
+File(::Shorthand{:emf}, path::AbstractString) = File{EMFFmt}(path)
+File(::Shorthand{:stl}, path::AbstractString) = File{STLImgFmt}(path)
 
-File(::Format{:bmp}, path::AbstractString) = File{BMPFmt}(path)
-File(::Format{:png}, path::AbstractString) = File{PNGFmt}(path)
-File(::Format{:gif}, path::AbstractString) = File{GIFFmt}(path)
-File(::Format{:jpeg}, path::AbstractString) = File{JPEGFmt}(path)
-File(::Format{:tiff}, path::AbstractString) = File{TIFFFmt}(path)
+File(::Shorthand{:bmp}, path::AbstractString) = File{BMPFmt}(path)
+File(::Shorthand{:png}, path::AbstractString) = File{PNGFmt}(path)
+File(::Shorthand{:gif}, path::AbstractString) = File{GIFFmt}(path)
+File(::Shorthand{:jpeg}, path::AbstractString) = File{JPEGFmt}(path)
+File(::Shorthand{:tiff}, path::AbstractString) = File{TIFFFmt}(path)
 
 
 #==File object casting functions
@@ -169,14 +169,14 @@ File(::Format{:tiff}, path::AbstractString) = File{TIFFFmt}(path)
 #TODO: Add more casting functions for other DataFormat types
 #Question: Should casting be done using Base.convert instead?
 
-File(datafmt::Symbol, f::File) = File(Format(datafmt), f)
-File{T<:Symbol,TF<:File}(::Format{T}, f::TF) =
+File(datafmt::Symbol, f::File) = File(Shorthand(datafmt), f)
+File{T,TF<:File}(::Shorthand{T}, f::TF) =
 	throw(ArgumentError("Conversion not possible: File($T, ::$TF)"))
 
 #Markup language --> plain text:
 #TODO: Use convert()??
 File{E<:TextEncoding}(::Type{TextFormat}, f::File{HTMLFormat{E}}) = File(TextFormat{E}, f.path)
-File{E<:TextEncoding}(::Format{:text}, f::File{HTMLFormat{E}}) = File(TextFormat{E}, f.path)
+File{E<:TextEncoding}(::Shorthand{:text}, f::File{HTMLFormat{E}}) = File(TextFormat{E}, f.path)
 
 #Casting on Vector{File} to arbitrary data format:
 File{RFMT<:DataFormat, VT<:File}(::Type{RFMT}, v::Vector{VT}) = map((f)->File(RFMT, f), v)
@@ -185,10 +185,11 @@ File{VT<:File}(datafmt::Symbol, v::Vector{VT}) = map((f)->File(datafmt, f), v)
 #==Generic data reader/writer functions
 ===============================================================================#
 #Define generic interface for user-defined reader/writer state-machines:
-abstract AbstractDataIO{T<:DataFormat}
-#If user prefers to seperate reader/writeer state machines:
-abstract AbstractReader{T<:DataFormat} <: AbstractDataIO{T}
-abstract AbstractWriter{T<:DataFormat} <: AbstractDataIO{T}
+abstract AbstractDataIO{READ,WRITE,T<:DataFormat}
+typealias AbstractDataIORW{T<:DataFormat} AbstractDataIO{true,true,T} #Same state machine to read/write
+#If user prefers to seperate reader/writer state machines:
+typealias AbstractReader{T<:DataFormat} AbstractDataIO{true,false,T}
+typealias AbstractWriter{T<:DataFormat} AbstractDataIO{false,true,T}
 
 #Identify IO options & make it easier to dispatch on types (ex: read function):
 immutable IOOptions{READ,WRITE}
@@ -222,21 +223,6 @@ function IOOptions(;read=nothing, write::Bool=false,
 end
 
 
-#==Helper functions
-===============================================================================#
-#Get dataio list (excluding simple reader/writers)
-#TODO: strip out undersired types from vector:
-function getdataiolist{DF<:DataFormat}(::Type{DF})
-	result = []
-	for dataio in subtypes(AbstractDataIO{DF})
-		if !(dataio<:AbstractReader) && !(dataio<:AbstractWriter)
-			push!(result, dataio)
-		end
-	end
-	return result
-end
-
-
 #==Generic open/close read/write functions
 ===============================================================================#
 
@@ -244,7 +230,7 @@ end
 #-------------------------------------------------------------------------------
 function _open{DF<:DataFormat}(fn::Function, f::File{DF}, ::IOOptionsRead, args...; kwargs...)
 	readerlist = subtypes(AbstractReader{DF})
-	dataiolist = getdataiolist(DF)
+	dataiolist = subtypes(AbstractDataIORW{DF})
 	if length(readerlist) + length(dataiolist) < 1
 		msg = "No registered readers for $DF"
 		error(msg)
@@ -264,7 +250,7 @@ end
 
 function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptionsWrite, args...; kwargs...)
 	writerlist = subtypes(AbstractReader{DF})
-	dataiolist = getdataiolist(DF)
+	dataiolist = subtypes(AbstractDataIORW{DF})
 		writerlist = vcat(writerlist, dataiolist)
 	if length(writerlist) < 1
 		msg = "No registered writers for $DF"
@@ -280,7 +266,7 @@ end
 
 #Neither pure readers nor writers:
 function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptions, args...; kwargs...)
-	dataiolist = getdataiolist(DF)
+	dataiolist = subtypes(AbstractDataIORW{DF})
 	if length(dataiolist) < 1
 		msg = "No registered AbstractDataIO for $DF"
 		error(msg)
