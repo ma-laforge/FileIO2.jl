@@ -3,6 +3,8 @@
 
 #Read in entire text file as string
 #TODO: Add exception handling
+#NOTE: Does not implement an "AbstractReader" object...
+#TODO: Change to conform to new system.
 #-------------------------------------------------------------------------------
 function Base.read{T<:TextFormat}(f::File{T})
 	s = open(f.path)
