@@ -8,13 +8,25 @@ FileIO2.jl therefore competes with the solution found at: <http://github.com/Jul
 
 ### Advantages (wrt FileIO.jl)
 
- - FileIO2.jl is a more lightweight module than FileIO.jl (Should probably be called FileIOLight.jl).
+ - FileIO2.jl is a more lightweight module than FileIO.jl (Should probably have been named better).
   - New file/data format types do not have to be registered with the FileIO2.jl module.
   - Only types of imported (used) modules are made available (including those provided with FileIO2.jl).
 
 ### Disadvantages (wrt FileIO.jl)
 
- - TODO: Add disadvantages.
+ - No facilities to perform dynamic loading of IO module.
+ - No ability to auto-detect filetype by extension.
+ - No ability to auto-detect filetype by magic bytes.
+
+### Points of Consideration
+
+It might be a good idea to consolidate/re-organize the FileIO.jl and FileIO2.jl modules.
+
+ - **A base module** could provide the base File object hierarchies and manipulation tools.
+  - This module should be relatively static (unchanging).
+ - **A registration module** could provide a repository of IO modules to that read/write different files.
+  - This module would demonstrate how to register all the PNG readers, the MP3 readers, etc.
+  - Users could then create a stripped-down version of the module to meet the needs of their application - thus avoiding complex dependencies.
 
 ### Sample Code
 
