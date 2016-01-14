@@ -81,7 +81,7 @@ abstract CommaDelimiters <: DelimiterScheme
 abstract ASCIIDelimiters <: DelimiterScheme
 
 #Delimiter seperated values:
-abstract DSVFormat{E<:TextEncoding, D<:DelimiterScheme} <: DataFormat
+abstract DSVFormat{E<:TextEncoding, D<:DelimiterScheme} <: TextFormat{TextEncoding}
 abstract CSVFormat{E<:TextEncoding} <: DSVFormat{E, CommaDelimiters}
 	typealias CSVFmt CSVFormat{UnknownTextEncoding}
 push!(fmtsymblist, :CSVFmt)
@@ -223,11 +223,10 @@ function IOOptions(;read=nothing, write::Bool=false,
 end
 
 
-#==Generic open/close read/write functions
+#==Base _open "algorithm" (not exported externally)
 ===============================================================================#
 
-#Base _open "algorithm" (not exported externally):
-#-------------------------------------------------------------------------------
+#Open for read:
 function _open{DF<:DataFormat}(fn::Function, f::File{DF}, ::IOOptionsRead, args...; kwargs...)
 	readerlist = subtypes(AbstractReader{DF})
 	dataiolist = subtypes(AbstractDataIORW{DF})
@@ -236,11 +235,11 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, ::IOOptionsRead, args.
 		error(msg)
 	end
 	for reader in readerlist; try
-		result = fn(reader, f, args...; kwargs...)
+		result = fn(reader, f.path, args...; kwargs...)
 		return result
 	end; end
 	for reader in dataiolist; try
-		result = fn(reader, f, IOOptionsRead(), args...; kwargs...)
+		result = fn(reader, f.path, IOOptionsRead(), args...; kwargs...)
 		return result
 	end; end
 	listall = vcat(readerlist, dataiolist)
@@ -248,6 +247,7 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, ::IOOptionsRead, args.
 	error(msg)
 end
 
+#Open for write:
 function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptionsWrite, args...; kwargs...)
 	writerlist = subtypes(AbstractReader{DF})
 	dataiolist = subtypes(AbstractDataIORW{DF})
@@ -257,14 +257,14 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptionsWrite, a
 		error(msg)
 	end
 	for writer in writerlist; try
-		result = fn(writer, f, opt, args...; kwargs...)
+		result = fn(writer, f.path, opt, args...; kwargs...)
 		return result
 	end; end
 	msg = "Failed to $fn $f with writers: $writerlist"
 	error(msg)
 end
 
-#Neither pure readers nor writers:
+#Open for read/write (Neither pure readers nor writers):
 function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptions, args...; kwargs...)
 	dataiolist = subtypes(AbstractDataIORW{DF})
 	if length(dataiolist) < 1
@@ -272,19 +272,31 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptions, args..
 		error(msg)
 	end
 	for dataio in dataiolist; try
-		result = fn(dataio, f, opt, args...; kwargs...)
+		result = fn(dataio, f.path, opt, args...; kwargs...)
 		return result
 	end; end
 	msg = "Failed to $fn $f with AbstractDataIO: $dataiolist"
 	error(msg)
 end
 
-#High-level API called by user:
-#-------------------------------------------------------------------------------
+#==Generic open/close read/write functions
+===============================================================================#
+#(High-level API called by user)
+
 function open(f::File, args...; read=nothing, write::Bool=false,
 	create=nothing, truncate::Bool=false, append::Bool=false, kwargs...)
 	opt = IOOptions(read=read, write=write, create=create, truncate=truncate, append=append)
 	return _open(open, f, opt, args...; kwargs...)
+end
+
+#Support open-do (default declaration does not support kwargs...):
+function open(fn::Function, file::File, args...; kwargs...)
+    reader = open(file, args...; kwargs...)
+    try
+        fn(reader)
+    finally
+        close(reader)
+    end
 end
 
 function read(f::File, args...; kwargs...)

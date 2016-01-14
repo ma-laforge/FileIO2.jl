@@ -20,10 +20,19 @@ typealias ASCIIFile File{ASCIIFmt}
 
 typealias HTMLFile File{FileIO2.HTMLFmt}
 
+samplefile(filename) = 
+	joinpath(FileIO2.rootpath, "test/samplefiles", filename)
+
+sepline = "---------------------------------------------------------------------"
+
+
+
 println("\nText clean/simple method to print out a text file:")
-println("---------------------------------------------------------------------")
-#print(read(TextFile(@__FILE__)))
-print(read(ASCIIFile(@__FILE__)))
+println(sepline)
+print(read(File{FileIO2.TextFormat}(samplefile("textfile.txt")))) #This works on abstract types too
+print(read(TextFile(samplefile("textfile.txt"))))
+print(read(ASCIIFile(samplefile("asciifile.txt"))))
+print(read(File{UTF8Fmt}(samplefile("utf8file.txt"))))
 
 filelist = [
 	#Prefered notation (no specific encoding):
@@ -65,7 +74,9 @@ x=File("displaynogomsg.txt")
 println("\nGet extensions for an html file:")
 show(Extensions(HTMLFile)); println()
 
-println("\nTest read operation:")
+println("\nTest open/read/close dispatch system:")
+println(sepline)
+
 try; read(File(:bmp, "fakefile.bmp"))
 catch e; warn(e.msg)
 end
@@ -74,16 +85,34 @@ module PNGReaderTest
 	using FileIO2
 	type PNGReader1 <: AbstractReader{PNGFmt}; end
 	type PNGReader2 <: AbstractReader{PNGFmt}; end
-	Base.open(r::Type{PNGReader1}, f::File{PNGFmt}) =
-		(msg = "$PNGReader1: Failed to open $f"; warn(msg); error(msg))
-	Base.open(r::Type{PNGReader2}, f::File{PNGFmt}) = info("\nOpening $f...")
+	Base.open(r::Type{PNGReader1}, path::AbstractString) =
+		(msg = "$PNGReader1: Failed to open $path"; warn(msg); error(msg))
+	Base.open(r::Type{PNGReader2}, path::AbstractString) = info("\nOpening $path...")
 end
 using PNGReaderTest
 
-try; open(File(:png, "fakefile.png"), read=true)
-catch e; warn(e.msg)
+open(File(:png, "fakefile.png"), read=true)
+
+println("\nTest text reader system:")
+println(sepline)
+
+println("\nUse introspection to auto-select \"text\" reader:")
+open(File(:text, samplefile("integer_data.txt")), read=true) do reader
+	@show typeof(reader)
+	while !eof(reader)
+		data = read(reader, Int)
+		println("Read: $(typeof(data))(`$data`)")
+	end
 end
+#NOTE: Open :csv instead of :text if ',' is a desired separator
 
-
+#Ensure we use FileIO2.TextReader - to ensure consisten
+println("\nForce use of FileIO2.TextReader:")
+open(FileIO2.TextReader, samplefile("integer_data.txt")) do reader
+	while !eof(reader)
+		data = read(reader, Int)
+		println("Read: $(typeof(data))(`$data`)")
+	end
+end
 
 :Test_Complete

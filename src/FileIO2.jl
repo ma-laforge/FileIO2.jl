@@ -2,11 +2,14 @@
 module FileIO2
 
 import Base: open, read, write, close
+import Base: eof
 #TODO: readall/writeall/read! ?
 
 include("codegen.jl")
 include("base.jl")
 include("textfiles.jl")
+
+const rootpath = realpath(joinpath(dirname(realpath(@__FILE__)),"../."))
 
 export File
 export Extensions
