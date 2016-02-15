@@ -239,7 +239,7 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, ::IOOptionsRead, args.
 		return result
 	end; end
 	for reader in dataiolist; try
-		result = fn(reader, f.path, IOOptionsRead(), args...; kwargs...)
+		result = fn(reader, f.path, args...; kwargs...)
 		return result
 	end; end
 	listall = vcat(readerlist, dataiolist)
@@ -249,7 +249,7 @@ end
 
 #Open for write:
 function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptionsWrite, args...; kwargs...)
-	writerlist = subtypes(AbstractReader{DF})
+	writerlist = subtypes(AbstractWriter{DF})
 	dataiolist = subtypes(AbstractDataIORW{DF})
 		writerlist = vcat(writerlist, dataiolist)
 	if length(writerlist) < 1
@@ -257,7 +257,7 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptionsWrite, a
 		error(msg)
 	end
 	for writer in writerlist; try
-		result = fn(writer, f.path, opt, args...; kwargs...)
+		result = fn(writer, f.path, args...; kwargs..., opt=opt)
 		return result
 	end; end
 	msg = "Failed to $fn $f with writers: $writerlist"
@@ -272,7 +272,7 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptions, args..
 		error(msg)
 	end
 	for dataio in dataiolist; try
-		result = fn(dataio, f.path, opt, args...; kwargs...)
+		result = fn(dataio, f.path, args...; kwargs..., opt=opt)
 		return result
 	end; end
 	msg = "Failed to $fn $f with AbstractDataIO: $dataiolist"
@@ -305,6 +305,38 @@ end
 
 function write(f::File, args...; kwargs...)
 	return _open(write, f, IOOptions(write=true), args...; kwargs...)
+end
+
+#Support for open() do syntax:
+function open{IOT<:AbstractDataIO}(fn::Function, iot::Type{IOT}, args...; kwargs...)
+	io = open(iot, args...; kwargs...)
+	try
+		return fn(io)
+	finally
+		close(io)
+	end
+end
+
+#Read in entire file using a particular reader:
+function read{T<:AbstractReader}(RT::Type{T}, path::AbstractString)
+	open(RT, path) do reader
+		return readall(reader)
+	end
+end
+
+#Define generic read(reader, filepath) functionality:
+function read{T<:AbstractReader}(RT::Type{T}, path::AbstractString, args...; kwargs...)
+	open(RT, path) do reader
+		return read(reader, args...; kwargs...)
+	end
+end
+
+#Define generic write(writer, filepath) functionality:
+function write{T<:AbstractWriter}(WT::Type{T}, path::AbstractString, args...;
+	opt::IOOptionsWrite=IOOptions(write=true), kwargs...)
+	open(WT, path, opt=opt) do writer
+		return write(writer, args...; kwargs...)
+	end
 end
 
 
