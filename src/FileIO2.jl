@@ -8,6 +8,7 @@ import Base: eof
 include("codegen.jl")
 include("base.jl")
 include("textfiles.jl")
+include("mime.jl")
 
 const rootpath = realpath(joinpath(dirname(realpath(@__FILE__)),"../."))
 

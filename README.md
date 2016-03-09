@@ -28,7 +28,18 @@ It might be a good idea to consolidate/re-organize the FileIO.jl and FileIO2.jl 
   - This module would demonstrate how to register all the PNG readers, the MP3 readers, etc.
   - Users could then create a stripped-down version of the module to meet the needs of their application - thus avoiding complex dependencies.
 
-### Sample Code
+### MIME Support
+
+FileIO2.jl includes simple MIME support for images.  As a result, \*IJulia notebook users can display *IJulia-supported* images with very little code:
+
+	display(File(:jpeg, "myfile.jpeg"))
+
+Supported image formats include:
+
+ - Pixel formats: `:bmp`, `:png`, `:gif`, `:jpeg`, `:tiff`
+ - Vector formats: `:svg`, `:cgm`, `:eps`, `:emf`
+
+### More Sample Code
 
 Sample code is provided under the [test directory](test/).
 
