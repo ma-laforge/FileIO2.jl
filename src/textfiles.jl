@@ -21,14 +21,14 @@ type TextReader{T<:TextFormat} <: AbstractReader{T}
 end
 
 #Define default TextReader - when text format not (fully) specified:
-call(::Type{TextReader}, s::IO, splitter, linebuf::Vector) =
+(::Type{TextReader})(s::IO, splitter, linebuf::Vector) =
 	TextReader{TextFormat{UnknownTextEncoding}}(s, splitter, linebuf)
-call(::Type{TextReader{TextFormat}}, s::IO, splitter, linebuf::Vector) =
+(::Type{TextReader{TextFormat}})(s::IO, splitter, linebuf::Vector) =
 	TextReader{TextFormat{UnknownTextEncoding}}(s, splitter, linebuf)
 
 #Default splitter value:
-call{T<:TextReader}(RT::Type{T}, s::IO, splitter = splitter_default) =
-	RT(s, splitter, AbstractString[])
+(RT::Type{T}){T<:TextReader}(s::IO, splitter = splitter_default) =
+	RT(s, splitter, String[])
 
 
 #==Helper functions
@@ -52,15 +52,15 @@ end
 #==Open/read/close functions
 ===============================================================================#
 
-open{T<:TextReader}(RT::Type{T}, path::AbstractString, splitter = splitter_default) =
+open{T<:TextReader}(RT::Type{T}, path::String, splitter = splitter_default) =
 	RT(open(path, "r"), splitter)
-open{T<:CSVFormat}(RT::Type{TextReader{T}}, path::AbstractString, splitter = splitter_csv) =
+open{T<:CSVFormat}(RT::Type{TextReader{T}}, path::String, splitter = splitter_csv) =
 	RT(open(path, "r"), splitter)
 
 #Read in entire text file as string
-function read{T<:TextReader}(RT::Type{T}, path::AbstractString)
+function read{T<:TextReader}(RT::Type{T}, path::String)
 	open(RT, path) do reader
-		return readall(reader.s)
+		return readstring(reader.s)
 	end
 end
 
@@ -77,12 +77,12 @@ end
 
 #Read in next token & interpret as of type DT:
 function read{DT}(r::TextReader, ::Type{DT})
-	return parse(DT, read(r, AbstractString))
+	return parse(DT, read(r, String))
 end
 
 #Read in next token & interpret as most appropriate type:
 function read(r::TextReader, ::Type{Any})
-	return parse(read(r, AbstractString))
+	return parse(read(r, String))
 end
 
 
@@ -97,9 +97,9 @@ function Base.readline(r::TextReader)
 	return readline(r.s)
 end
 
-function Base.readall(r::TextReader)
+function Base.readstring(r::TextReader)
 	linebuf = []
-	return readall(r.s)
+	return readstring(r.s)
 end
 
 #Last line

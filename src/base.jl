@@ -40,17 +40,17 @@ abstract VectorImageFormat{E<:DataEncoding} <: ImageFormat{E}
 #File object definitions
 #-------------------------------------------------------------------------------
 type File{T<:DataFormat}
-	path::AbstractString
+	path::String
 end
 typealias UnknownFileFormat File{UnknownDataFormat}
 
 #Handy way to construct file objects:
-File(path::AbstractString) = info("TODO: Implement filetype auto-detection")
-File{T<:DataFormat}(::Type{T}, path::AbstractString) = File{T}(path)
+File(path::String) = info("TODO: Implement filetype auto-detection")
+File{T<:DataFormat}(::Type{T}, path::String) = File{T}(path)
 #Shortcut to construct file object of default data format wrt symbol:
-File(datafmt::Symbol, path::AbstractString) = File(Shorthand(datafmt), path)
-File{T}(::Shorthand{T}, path::AbstractString) =
-	throw(ArgumentError("Unrecognized data format: File(:$T, ::AbstractString)"))
+File(datafmt::Symbol, path::String) = File(Shorthand(datafmt), path)
+File{T}(::Shorthand{T}, path::String) =
+	throw(ArgumentError("Unrecognized data format: File(:$T, ::String)"))
 
 
 #==Text format definitions
@@ -144,24 +144,24 @@ push!(fmtsymblist, :SVGFmt, :CGMFmt, :EPSFmt, :EMFFmt, :STLImgFmt)
 
 #==Default File object constructors
 ===============================================================================#
-File(::Shorthand{:text}, path::AbstractString) = File{TextFmt}(path)
-File(::Shorthand{:csv}, path::AbstractString) = File{CSVFmt}(path)
-File(::Shorthand{:html}, path::AbstractString) = File{HTMLFmt}(path)
-File(::Shorthand{:xml}, path::AbstractString) = File{XMLFmt}(path)
-File(::Shorthand{:md}, path::AbstractString) = File{MarkdownFmt}(path)
-File(::Shorthand{:adoc}, path::AbstractString) = File{AsciiDocFmt}(path)
+File(::Shorthand{:text}, path::String) = File{TextFmt}(path)
+File(::Shorthand{:csv}, path::String) = File{CSVFmt}(path)
+File(::Shorthand{:html}, path::String) = File{HTMLFmt}(path)
+File(::Shorthand{:xml}, path::String) = File{XMLFmt}(path)
+File(::Shorthand{:md}, path::String) = File{MarkdownFmt}(path)
+File(::Shorthand{:adoc}, path::String) = File{AsciiDocFmt}(path)
 
-File(::Shorthand{:svg}, path::AbstractString) = File{SVGFmt}(path)
-File(::Shorthand{:cgm}, path::AbstractString) = File{CGMFmt}(path)
-File(::Shorthand{:eps}, path::AbstractString) = File{EPSFmt}(path)
-File(::Shorthand{:emf}, path::AbstractString) = File{EMFFmt}(path)
-File(::Shorthand{:stl}, path::AbstractString) = File{STLImgFmt}(path)
+File(::Shorthand{:svg}, path::String) = File{SVGFmt}(path)
+File(::Shorthand{:cgm}, path::String) = File{CGMFmt}(path)
+File(::Shorthand{:eps}, path::String) = File{EPSFmt}(path)
+File(::Shorthand{:emf}, path::String) = File{EMFFmt}(path)
+File(::Shorthand{:stl}, path::String) = File{STLImgFmt}(path)
 
-File(::Shorthand{:bmp}, path::AbstractString) = File{BMPFmt}(path)
-File(::Shorthand{:png}, path::AbstractString) = File{PNGFmt}(path)
-File(::Shorthand{:gif}, path::AbstractString) = File{GIFFmt}(path)
-File(::Shorthand{:jpeg}, path::AbstractString) = File{JPEGFmt}(path)
-File(::Shorthand{:tiff}, path::AbstractString) = File{TIFFFmt}(path)
+File(::Shorthand{:bmp}, path::String) = File{BMPFmt}(path)
+File(::Shorthand{:png}, path::String) = File{PNGFmt}(path)
+File(::Shorthand{:gif}, path::String) = File{GIFFmt}(path)
+File(::Shorthand{:jpeg}, path::String) = File{JPEGFmt}(path)
+File(::Shorthand{:tiff}, path::String) = File{TIFFFmt}(path)
 
 
 #==File object casting functions
@@ -318,21 +318,21 @@ function open{IOT<:AbstractDataIO}(fn::Function, iot::Type{IOT}, args...; kwargs
 end
 
 #Read in entire file using a particular reader:
-function read{T<:AbstractReader}(RT::Type{T}, path::AbstractString)
+function read{T<:AbstractReader}(RT::Type{T}, path::String)
 	open(RT, path) do reader
-		return readall(reader)
+		return readstring(reader)
 	end
 end
 
 #Define generic read(reader, filepath) functionality:
-function read{T<:AbstractReader}(RT::Type{T}, path::AbstractString, args...; kwargs...)
+function read{T<:AbstractReader}(RT::Type{T}, path::String, args...; kwargs...)
 	open(RT, path) do reader
 		return read(reader, args...; kwargs...)
 	end
 end
 
 #Define generic write(writer, filepath) functionality:
-function write{T<:AbstractWriter}(WT::Type{T}, path::AbstractString, args...;
+function write{T<:AbstractWriter}(WT::Type{T}, path::String, args...;
 	opt::IOOptionsWrite=IOOptions(write=true), kwargs...)
 	open(WT, path, opt=opt) do writer
 		return write(writer, args...; kwargs...)

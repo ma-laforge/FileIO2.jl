@@ -4,7 +4,7 @@
 #==Constants
 ===============================================================================#
 #TODO: Not sure if mime type strings are correct.
-const MIMEASSOCIATIONS = Tuple{ASCIIString,DataType}[
+const MIMEASSOCIATIONS = Tuple{String,DataType}[
 	("image/bmp", BMPFmt),
 	("image/png", PNGFmt),
 	("image/gif", GIFFmt),
@@ -19,7 +19,7 @@ const MIMEASSOCIATIONS = Tuple{ASCIIString,DataType}[
 
 for (mtstr, fmt) in MIMEASSOCIATIONS; @eval begin #CODEGEN-----------------------
 
-Base.writemime(stream, ::MIME{symbol($mtstr)}, f::File{$fmt}) = write(stream, readall(f.path))
+Base.show(stream, ::MIME{Symbol($mtstr)}, f::File{$fmt}) = write(stream, readstring(f.path))
 
 end; end #CODEGEN---------------------------------------------------------------
 

@@ -1,9 +1,10 @@
 #FileIO2: Method of categorizing/dispatching on data formats & files.
+__precompile__()
+
 module FileIO2
 
 import Base: open, read, write, close
 import Base: eof
-#TODO: readall/writeall/read! ?
 
 include("codegen.jl")
 include("base.jl")

@@ -73,7 +73,7 @@ Sample code is provided under the [test directory](test/).
 
 #### Constructing `File` Objects (Shorthand)
 
-The simplest way to construct a `File` object is to call the "shorthand" method: `File(::Symbol, ::AbstractString)`.  For example:
+The simplest way to construct a `File` object is to call the "shorthand" method: `File(::Symbol, ::String)`.  For example:
 
 		f1 = File(:text, "myfile.txt")
 		f2 = File(:png, "myimage.png")
@@ -88,11 +88,11 @@ This method allows different `File` specializations to be constructed without ex
 
 To register a user-defined `File` constructor with this shorthand notation, simply add the following method declaration:
 
-		FileIO2.File(::FileIO2.Shorthand{[NEWFMTSYMBOL]}, path::AbstractString) = File{[NEWFMT<:DataFormat]}(path)
+		FileIO2.File(::FileIO2.Shorthand{[NEWFMTSYMBOL]}, path::String) = File{[NEWFMT<:DataFormat]}(path)
 
 For example, the "text" format can be registered using:
 
-		FileIO2.File(::FileIO2.Shorthand{:text}, path::AbstractString) = File{FileIO2.TextFmt}(path)
+		FileIO2.File(::FileIO2.Shorthand{:text}, path::String) = File{FileIO2.TextFmt}(path)
 
 #### Opening `File` for read/write
 
@@ -116,7 +116,7 @@ FileIO2.jl tries to minimize the set of exported types/aliases until a better wa
 
 Extensive compatibility testing of FileIO2.jl has not been performed.  The module has been tested using the following environment(s):
 
- - Linux / Julia-0.4.0 (64-bit).
+ - Linux / Julia-0.5.0 (64-bit).
 
 ## Disclaimer
 
