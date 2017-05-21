@@ -8,41 +8,41 @@ fmtsymblist = Symbol[] #List of sybols corresponding to DataFormat types
 
 #==Data encoding definitions
 ===============================================================================#
-abstract DataEncoding
-abstract BinaryEncoding <: DataEncoding
-abstract TextEncoding <: DataEncoding
-abstract UnknownEncoding <: DataEncoding
+abstract type DataEncoding end
+abstract type BinaryEncoding <: DataEncoding end
+abstract type TextEncoding <: DataEncoding end
+abstract type UnknownEncoding <: DataEncoding end
 
 #TODO: Add Endianess for Binary encoding??
 
 #Specific text encoding schemes:
-abstract UnknownTextEncoding <: TextEncoding
-abstract Unicode <: TextEncoding
-abstract ASCIIEncoding <: TextEncoding
-abstract UTF8Encoding <: Unicode
-abstract UTF16Encoding <: Unicode
-abstract UTF32Encoding <: Unicode
+abstract type UnknownTextEncoding <: TextEncoding end
+abstract type Unicode <: TextEncoding end
+abstract type ASCIIEncoding <: TextEncoding end
+abstract type UTF8Encoding <: Unicode end
+abstract type UTF16Encoding <: Unicode end
+abstract type UTF32Encoding <: Unicode end
 
 
 #==Generic data format/file definitions
 ===============================================================================#
-immutable Shorthand{T}; end; #Temp: used to dispatch on symbol (ex: Shorthand{:png})
+struct Shorthand{T}; end; #Temp: used to dispatch on symbol (ex: Shorthand{:png})
 Shorthand(datafmt::Symbol) = Shorthand{datafmt}();
 
-abstract DataFormat;
-abstract UnknownDataFormat <: DataFormat
+abstract type DataFormat end
+abstract type UnknownDataFormat <: DataFormat end
 
 #Image formats:
-abstract ImageFormat{E<:DataEncoding} <: DataFormat
-abstract PixelImageFormat{E<:DataEncoding} <: ImageFormat{E}
-abstract VectorImageFormat{E<:DataEncoding} <: ImageFormat{E}
+abstract type ImageFormat{E<:DataEncoding} <: DataFormat end
+abstract type PixelImageFormat{E<:DataEncoding} <: ImageFormat{E} end
+abstract type VectorImageFormat{E<:DataEncoding} <: ImageFormat{E} end
 
 #File object definitions
 #-------------------------------------------------------------------------------
-type File{T<:DataFormat}
+mutable struct File{T<:DataFormat}
 	path::String
 end
-typealias UnknownFileFormat File{UnknownDataFormat}
+const UnknownFileFormat = File{UnknownDataFormat}
 
 #Handy way to construct file objects:
 File(path::String) = info("TODO: Implement filetype auto-detection")
@@ -55,15 +55,15 @@ File{T}(::Shorthand{T}, path::String) =
 
 #==Text format definitions
 ===============================================================================#
-abstract TextFormat{E<:TextEncoding} <: DataFormat
+abstract type TextFormat{E<:TextEncoding} <: DataFormat end
 
 #Handy aliases (Eventually want to export aliases):
 #-------------------------------------------------------------------------------
-typealias TextFmt TextFormat{UnknownTextEncoding}
-typealias ASCIIFmt TextFormat{ASCIIEncoding}
-typealias UTF8Fmt  TextFormat{UTF8Encoding}
-typealias UTF16Fmt TextFormat{UTF16Encoding}
-typealias UTF32Fmt TextFormat{UTF32Encoding}
+const TextFmt = TextFormat{UnknownTextEncoding}
+const ASCIIFmt = TextFormat{ASCIIEncoding}
+const UTF8Fmt  = TextFormat{UTF8Encoding}
+const UTF16Fmt = TextFormat{UTF16Encoding}
+const UTF32Fmt = TextFormat{UTF32Encoding}
 push!(fmtsymblist, :TextFmt, :ASCIIFmt, :UTF8Fmt, :UTF16Fmt, :UTF32Fmt)
 
 #Specify expected file extensions:
@@ -73,44 +73,44 @@ Extensions(::Type{File{TextFmt}}) = ["txt", "log", "dat", "csv"]
 #==Tabular (text) data format definitions
 ===============================================================================#
 #Identify Delimiter Seperated Value (DSV) schemes:
-abstract DelimiterScheme
-abstract SpaceDelimiters <: DelimiterScheme
-abstract TabDelimiters <: DelimiterScheme
-abstract CommaDelimiters <: DelimiterScheme
+abstract type DelimiterScheme end
+abstract type SpaceDelimiters <: DelimiterScheme end
+abstract type TabDelimiters <: DelimiterScheme end
+abstract type CommaDelimiters <: DelimiterScheme end
 #Actually use the ASCII codes created to store table data to file:
-abstract ASCIIDelimiters <: DelimiterScheme
+abstract type ASCIIDelimiters <: DelimiterScheme end
 
 #Delimiter seperated values:
-abstract DSVFormat{E<:TextEncoding, D<:DelimiterScheme} <: TextFormat{TextEncoding}
-abstract CSVFormat{E<:TextEncoding} <: DSVFormat{E, CommaDelimiters}
-	typealias CSVFmt CSVFormat{UnknownTextEncoding}
+abstract type DSVFormat{E<:TextEncoding, D<:DelimiterScheme} <: TextFormat{TextEncoding} end
+abstract type CSVFormat{E<:TextEncoding} <: DSVFormat{E, CommaDelimiters} end
+	const CSVFmt = CSVFormat{UnknownTextEncoding}
 push!(fmtsymblist, :CSVFmt)
 
 
 #==Markup language data format definitions
 ===============================================================================#
-abstract HTMLFormat{E<:TextEncoding} <: DataFormat
-abstract XMLFormat{E<:TextEncoding} <: DataFormat
-abstract MarkdownFormat{E<:TextEncoding} <: DataFormat
-abstract AsciiDocFormat{E<:TextEncoding} <: DataFormat
+abstract type HTMLFormat{E<:TextEncoding} <: DataFormat end
+abstract type XMLFormat{E<:TextEncoding} <: DataFormat end
+abstract type MarkdownFormat{E<:TextEncoding} <: DataFormat end
+abstract type AsciiDocFormat{E<:TextEncoding} <: DataFormat end
 
 #TODO: Is the above better, or should we structure things this way:
-#abstract HTMLFmt{E<:TextEncoding} <: TextFormat{E}
+#abstract type HTMLFmt{E<:TextEncoding} <: TextFormat{E} end
 #...or how about:
-#abstract HTMLFmt{TextFormat} <: DataFormat
+#abstract type HTMLFmt{TextFormat} <: DataFormat end
 #???
 #...Try to figure out which way is most natural/easiest to use...
 
 #Handy aliases
 #-------------------------------------------------------------------------------
-typealias HTMLFmt HTMLFormat{UnknownTextEncoding}
-typealias ASCIIHTMLFmt HTMLFormat{ASCIIEncoding}
-typealias UTF8HTMLFmt  HTMLFormat{UTF8Encoding}
+const HTMLFmt = HTMLFormat{UnknownTextEncoding}
+const ASCIIHTMLFmt = HTMLFormat{ASCIIEncoding}
+const UTF8HTMLFmt  = HTMLFormat{UTF8Encoding}
 push!(fmtsymblist, :HTMLFmt, :ASCIIHTMLFmt, :UTF8HTMLFmt)
 
-typealias XMLFmt XMLFormat{UnknownTextEncoding}
-typealias MarkdownFmt MarkdownFormat{UnknownTextEncoding}
-typealias AsciiDocFmt AsciiDocFormat{UnknownTextEncoding}
+const XMLFmt = XMLFormat{UnknownTextEncoding}
+const MarkdownFmt = MarkdownFormat{UnknownTextEncoding}
+const AsciiDocFmt = AsciiDocFormat{UnknownTextEncoding}
 #TODO: Register others
 push!(fmtsymblist, :XMLFmt, :MarkdownFmt, :AsciiDocFmt)
 
@@ -120,25 +120,25 @@ Extensions(::Type{File{HTMLFmt}}) = ["htm", "html"]
 
 #==Bitmap image formats
 ===============================================================================#
-abstract BMPFmt  <: PixelImageFormat{BinaryEncoding}
-abstract PNGFmt  <: PixelImageFormat{BinaryEncoding}
-abstract GIFFmt  <: PixelImageFormat{BinaryEncoding}
-abstract JPEGFmt <: PixelImageFormat{BinaryEncoding}
-abstract TIFFFmt <: PixelImageFormat{BinaryEncoding}
+abstract type BMPFmt  <: PixelImageFormat{BinaryEncoding} end
+abstract type PNGFmt  <: PixelImageFormat{BinaryEncoding} end
+abstract type GIFFmt  <: PixelImageFormat{BinaryEncoding} end
+abstract type JPEGFmt <: PixelImageFormat{BinaryEncoding} end
+abstract type TIFFFmt <: PixelImageFormat{BinaryEncoding} end
 #NOTE: Default show() function gives desired result
 push!(fmtsymblist, :BMPFmt, :PNGFmt, :GIFFmt, :JPEGFmt, :TIFFFmt)
 
 
 #==Vector image formats
 ===============================================================================#
-abstract SVGFormat{E<:DataEncoding} <: VectorImageFormat{E}
-	typealias SVGFmt SVGFormat{UnknownEncoding}
-abstract CGMFmt <: VectorImageFormat{BinaryEncoding}
-abstract EPSFormat{E<:TextEncoding} <: VectorImageFormat{E}
-	typealias EPSFmt EPSFormat{UnknownTextEncoding}
-abstract EMFFmt <: VectorImageFormat{BinaryEncoding}
-abstract STLImgFormat{E<:TextEncoding} <: VectorImageFormat{E}
-	typealias STLImgFmt SVGFormat{UnknownTextEncoding}
+abstract type SVGFormat{E<:DataEncoding} <: VectorImageFormat{E} end
+	const SVGFmt = SVGFormat{UnknownEncoding}
+abstract type CGMFmt <: VectorImageFormat{BinaryEncoding} end
+abstract type EPSFormat{E<:TextEncoding} <: VectorImageFormat{E} end
+	const EPSFmt = EPSFormat{UnknownTextEncoding}
+abstract type EMFFmt <: VectorImageFormat{BinaryEncoding} end
+abstract type STLImgFormat{E<:TextEncoding} <: VectorImageFormat{E} end
+	const STLImgFmt = SVGFormat{UnknownTextEncoding}
 push!(fmtsymblist, :SVGFmt, :CGMFmt, :EPSFmt, :EMFFmt, :STLImgFmt)
 
 
@@ -185,21 +185,21 @@ File{VT<:File}(datafmt::Symbol, v::Vector{VT}) = map((f)->File(datafmt, f), v)
 #==Generic data reader/writer functions
 ===============================================================================#
 #Define generic interface for user-defined reader/writer state-machines:
-abstract AbstractDataIO{READ,WRITE,T<:DataFormat}
-typealias AbstractDataIORW{T<:DataFormat} AbstractDataIO{true,true,T} #Same state machine to read/write
+abstract type AbstractDataIO{READ,WRITE,T<:DataFormat} end
+const AbstractDataIORW{T<:DataFormat} = AbstractDataIO{true,true,T} #Same state machine to read/write
 #If user prefers to seperate reader/writer state machines:
-typealias AbstractReader{T<:DataFormat} AbstractDataIO{true,false,T}
-typealias AbstractWriter{T<:DataFormat} AbstractDataIO{false,true,T}
+const AbstractReader{T<:DataFormat} = AbstractDataIO{true,false,T}
+const AbstractWriter{T<:DataFormat} = AbstractDataIO{false,true,T}
 
 #Identify IO options & make it easier to dispatch on types (ex: read function):
-immutable IOOptions{READ,WRITE}
+struct IOOptions{READ,WRITE}
 	create::Bool
 	truncate::Bool
 	append::Bool
 end
-typealias IOOptionsRead IOOptions{true,false}
-typealias IOOptionsWrite IOOptions{false,true}
-typealias IOOptionsReadWrite IOOptions{true,true}
+const IOOptionsRead = IOOptions{true,false}
+const IOOptionsWrite = IOOptions{false,true}
+const IOOptionsReadWrite = IOOptions{true,true}
 function IOOptionsWrite(write::Bool, create::Bool, truncate::Bool, append::Bool)
 	write = write||create||truncate||append
 	create = write #Don't create for read-only

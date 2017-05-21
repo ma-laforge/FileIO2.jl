@@ -64,7 +64,7 @@ Sample code is provided under the [test directory](test/).
 
  - **`FileIO2.DataFormat`**: (abstract) Identifies a data format, as opposed to a file.
  - **`FileIO2.DataEncoding`**: (abstract) Identifies the type of data encoding used.  Can be used to specialize a type `T<:DataFormat`.
-  - Can use `UnknownTextEncoding` to describe "generic" versions of a type.  For example: `typealias TextFmt TextFormat{UnknownTextEncoding}` defines `TextFmt` to represent any text data format (irrespective of the data encoding used).
+  - Can use `UnknownTextEncoding` to describe "generic" versions of a type.  For example: `const TextFmt = TextFormat{UnknownTextEncoding}` defines `TextFmt` to represent any text data format (irrespective of the data encoding used).
   - TODO: Does anybody really need to specialize a `DataFormat` with a particular encoding?
  - **`AbstractReader{DataFormat}`**: (abstract) Used to define an object for reading from a stream formatted with `DataFormat`.
  - **`AbstractWriter{DataFormat}`**: (abstract) Used to define an object for writing to a stream formatted with `DataFormat`.
@@ -116,7 +116,7 @@ FileIO2.jl tries to minimize the set of exported types/aliases until a better wa
 
 Extensive compatibility testing of FileIO2.jl has not been performed.  The module has been tested using the following environment(s):
 
- - Linux / Julia-0.5.0 (64-bit).
+ - Linux / Julia-0.6.0-rc1 (64-bit).
 
 ## Disclaimer
 

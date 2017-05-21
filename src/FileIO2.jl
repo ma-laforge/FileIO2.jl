@@ -27,8 +27,8 @@ export SVGFmt, CGMFmt, EPSFmt, EMFFmt, STLImgFmt
 
 export AbstractDataIO, AbstractReader, AbstractWriter, AbstractDataIORW
 #==Create your own reader/writer state machine using the following pattern:
-immutable MyDataType <: FileIO2.DataFormat; end
-type MyReader <: AbstractReader{MyDataType}
+struct MyDataType <: FileIO2.DataFormat; end
+mutable struct MyReader <: AbstractReader{MyDataType}
 ...
 end
 ==#

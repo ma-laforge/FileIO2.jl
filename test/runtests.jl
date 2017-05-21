@@ -6,19 +6,19 @@ using FileIO2
 #No real test code yet... just run demos:
 
 #Use alias shorthands:
-typealias ASCIIFmt FileIO2.ASCIIFmt
-typealias UTF8Fmt  FileIO2.UTF8Fmt
-typealias UTF16Fmt FileIO2.UTF16Fmt
-typealias UTF32Fmt FileIO2.TextFormat{FileIO2.UTF32Encoding}
+const ASCIIFmt = FileIO2.ASCIIFmt
+const UTF8Fmt  = FileIO2.UTF8Fmt
+const UTF16Fmt = FileIO2.UTF16Fmt
+const UTF32Fmt = FileIO2.TextFormat{FileIO2.UTF32Encoding}
 
-typealias ASCIIHTMLFmt FileIO2.ASCIIHTMLFmt
-typealias UTF16HTMLFmt FileIO2.HTMLFormat{FileIO2.UTF16Encoding}
+const ASCIIHTMLFmt = FileIO2.ASCIIHTMLFmt
+const UTF16HTMLFmt = FileIO2.HTMLFormat{FileIO2.UTF16Encoding}
 
 #For extra convenience:
-typealias TextFile File{TextFmt}
-typealias ASCIIFile File{ASCIIFmt}
+const TextFile = File{TextFmt}
+const ASCIIFile = File{ASCIIFmt}
 
-typealias HTMLFile File{FileIO2.HTMLFmt}
+const HTMLFile = File{FileIO2.HTMLFmt}
 
 samplefile(filename) = 
 	joinpath(FileIO2.rootpath, "test/samplefiles", filename)
