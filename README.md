@@ -116,7 +116,7 @@ FileIO2.jl tries to minimize the set of exported types/aliases until a better wa
 
 Extensive compatibility testing of FileIO2.jl has not been performed.  The module has been tested using the following environment(s):
 
- - Linux / Julia-0.6.0-rc1 (64-bit).
+ - Linux / Julia-0.7.0 (64-bit).
 
 ## Disclaimer
 

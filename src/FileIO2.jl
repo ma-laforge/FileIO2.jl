@@ -5,6 +5,7 @@ module FileIO2
 
 import Base: open, read, write, close
 import Base: eof
+import InteractiveUtils: subtypes
 
 include("codegen.jl")
 include("base.jl")

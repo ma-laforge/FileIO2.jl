@@ -45,11 +45,11 @@ end
 const UnknownFileFormat = File{UnknownDataFormat}
 
 #Handy way to construct file objects:
-File(path::String) = info("TODO: Implement filetype auto-detection")
-File{T<:DataFormat}(::Type{T}, path::String) = File{T}(path)
+File(path::String) = @info("TODO: Implement filetype auto-detection")
+File(::Type{T}, path::String) where T<:DataFormat = File{T}(path)
 #Shortcut to construct file object of default data format wrt symbol:
 File(datafmt::Symbol, path::String) = File(Shorthand(datafmt), path)
-File{T}(::Shorthand{T}, path::String) =
+File(::Shorthand{T}, path::String) where T =
 	throw(ArgumentError("Unrecognized data format: File(:$T, ::String)"))
 
 
@@ -170,17 +170,17 @@ File(::Shorthand{:tiff}, path::String) = File{TIFFFmt}(path)
 #Question: Should casting be done using Base.convert instead?
 
 File(datafmt::Symbol, f::File) = File(Shorthand(datafmt), f)
-File{T,TF<:File}(::Shorthand{T}, f::TF) =
+File(::Shorthand{T}, f::TF) where {T,TF<:File} =
 	throw(ArgumentError("Conversion not possible: File($T, ::$TF)"))
 
 #Markup language --> plain text:
 #TODO: Use convert()??
-File{E<:TextEncoding}(::Type{TextFormat}, f::File{HTMLFormat{E}}) = File(TextFormat{E}, f.path)
-File{E<:TextEncoding}(::Shorthand{:text}, f::File{HTMLFormat{E}}) = File(TextFormat{E}, f.path)
+File(::Type{TextFormat}, f::File{HTMLFormat{E}}) where E<:TextEncoding = File(TextFormat{E}, f.path)
+File(::Shorthand{:text}, f::File{HTMLFormat{E}}) where E<:TextEncoding = File(TextFormat{E}, f.path)
 
 #Casting on Vector{File} to arbitrary data format:
-File{RFMT<:DataFormat, VT<:File}(::Type{RFMT}, v::Vector{VT}) = map((f)->File(RFMT, f), v)
-File{VT<:File}(datafmt::Symbol, v::Vector{VT}) = map((f)->File(datafmt, f), v)
+File(::Type{RFMT}, v::Vector{VT}) where {RFMT<:DataFormat, VT<:File} = map((f)->File(RFMT, f), v)
+File(datafmt::Symbol, v::Vector{VT}) where VT<:File = map((f)->File(datafmt, f), v)
 
 #==Generic data reader/writer functions
 ===============================================================================#
@@ -205,7 +205,7 @@ function IOOptionsWrite(write::Bool, create::Bool, truncate::Bool, append::Bool)
 	create = write #Don't create for read-only
 	return (write, create, truncate, append)
 end
-function IOOptionsWrite(write::Bool, create::Void, truncate::Bool, append::Bool)
+function IOOptionsWrite(write::Bool, create::Nothing, truncate::Bool, append::Bool)
 	write = write||truncate||append
 	create = write #Don't create for read-only
 	return (write, create, truncate, append)
@@ -227,7 +227,7 @@ end
 ===============================================================================#
 
 #Open for read:
-function _open{DF<:DataFormat}(fn::Function, f::File{DF}, ::IOOptionsRead, args...; kwargs...)
+function _open(fn::Function, f::File{DF}, ::IOOptionsRead, args...; kwargs...) where DF<:DataFormat
 	readerlist = subtypes(AbstractReader{DF})
 	dataiolist = subtypes(AbstractDataIORW{DF})
 	if length(readerlist) + length(dataiolist) < 1
@@ -237,18 +237,18 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, ::IOOptionsRead, args.
 	for reader in readerlist; try
 		result = fn(reader, f.path, args...; kwargs...)
 		return result
-	end; end
+	catch; end; end
 	for reader in dataiolist; try
 		result = fn(reader, f.path, args...; kwargs...)
 		return result
-	end; end
+	catch; end; end
 	listall = vcat(readerlist, dataiolist)
 	msg = "Failed to $fn $f with readers: $listall"
 	error(msg)
 end
 
 #Open for write:
-function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptionsWrite, args...; kwargs...)
+function _open(fn::Function, f::File{DF}, opt::IOOptionsWrite, args...; kwargs...) where DF<:DataFormat
 	writerlist = subtypes(AbstractWriter{DF})
 	dataiolist = subtypes(AbstractDataIORW{DF})
 		writerlist = vcat(writerlist, dataiolist)
@@ -259,13 +259,13 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptionsWrite, a
 	for writer in writerlist; try
 		result = fn(writer, f.path, args...; kwargs..., opt=opt)
 		return result
-	end; end
+	catch; end; end
 	msg = "Failed to $fn $f with writers: $writerlist"
 	error(msg)
 end
 
 #Open for read/write (Neither pure readers nor writers):
-function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptions, args...; kwargs...)
+function _open(fn::Function, f::File{DF}, opt::IOOptions, args...; kwargs...) where DF<:DataFormat
 	dataiolist = subtypes(AbstractDataIORW{DF})
 	if length(dataiolist) < 1
 		msg = "No registered AbstractDataIO for $DF"
@@ -274,7 +274,7 @@ function _open{DF<:DataFormat}(fn::Function, f::File{DF}, opt::IOOptions, args..
 	for dataio in dataiolist; try
 		result = fn(dataio, f.path, args...; kwargs..., opt=opt)
 		return result
-	end; end
+	catch; end; end
 	msg = "Failed to $fn $f with AbstractDataIO: $dataiolist"
 	error(msg)
 end
@@ -308,7 +308,7 @@ function write(f::File, args...; kwargs...)
 end
 
 #Support for open() do syntax:
-function open{IOT<:AbstractDataIO}(fn::Function, iot::Type{IOT}, args...; kwargs...)
+function open(fn::Function, iot::Type{IOT}, args...; kwargs...) where IOT<:AbstractDataIO
 	io = open(iot, args...; kwargs...)
 	try
 		return fn(io)
@@ -318,22 +318,22 @@ function open{IOT<:AbstractDataIO}(fn::Function, iot::Type{IOT}, args...; kwargs
 end
 
 #Read in entire file using a particular reader:
-function read{T<:AbstractReader}(RT::Type{T}, path::String)
+function read(RT::Type{T}, path::String) where T<:AbstractReader
 	open(RT, path) do reader
-		return readstring(reader)
+		return read(reader, String)
 	end
 end
 
 #Define generic read(reader, filepath) functionality:
-function read{T<:AbstractReader}(RT::Type{T}, path::String, args...; kwargs...)
+function read(RT::Type{T}, path::String, args...; kwargs...) where T<:AbstractReader
 	open(RT, path) do reader
 		return read(reader, args...; kwargs...)
 	end
 end
 
 #Define generic write(writer, filepath) functionality:
-function write{T<:AbstractWriter}(WT::Type{T}, path::String, args...;
-	opt::IOOptionsWrite=IOOptions(write=true), kwargs...)
+function write(WT::Type{T}, path::String, args...;
+	opt::IOOptionsWrite=IOOptions(write=true), kwargs...) where T<:AbstractWriter
 	open(WT, path, opt=opt) do writer
 		return write(writer, args...; kwargs...)
 	end
@@ -348,7 +348,7 @@ for fmt in fmtsymblist
 	eval(genexpr_ShowSimpleFileSign(fmt))
 end
 
-function Base.show{T<:File}(io::IO, filelist::Vector{T})
+function Base.show(io::IO, filelist::Vector{T}) where T<:File
 	typestr = string(T)
 	print(io, "$typestr[\n")
 	for f in filelist

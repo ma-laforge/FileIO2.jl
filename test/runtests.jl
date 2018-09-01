@@ -78,18 +78,18 @@ println("\nTest open/read/close dispatch system:")
 println(sepline)
 
 try; read(File(:bmp, "fakefile.bmp"))
-catch e; warn(e.msg)
+catch e; @warn(e.msg)
 end
 
 module PNGReaderTest
 	using FileIO2
-	type PNGReader1 <: AbstractReader{PNGFmt}; end
-	type PNGReader2 <: AbstractReader{PNGFmt}; end
-	Base.open(r::Type{PNGReader1}, path::String) =
-		(msg = "$PNGReader1: Failed to open $path"; warn(msg); error(msg))
-	Base.open(r::Type{PNGReader2}, path::String) = info("\nOpening $path...")
+	struct PNGReader1 <: AbstractReader{PNGFmt}; end
+	struct PNGReader2 <: AbstractReader{PNGFmt}; end
+	Base.open(r::Type{PNGReader1}, path::String) = #Throw error to look for working reader
+		(msg = "$PNGReader1: Failed to open $path"; @warn(msg); error(msg))
+	Base.open(r::Type{PNGReader2}, path::String) = @info("\nOpening $path...")
 end
-using PNGReaderTest
+#using PNGReaderTest #no longer need to do "using"
 
 open(File(:png, "fakefile.png"), read=true)
 

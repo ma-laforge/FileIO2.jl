@@ -19,7 +19,7 @@ const MIMEASSOCIATIONS = Tuple{String,DataType}[
 
 for (mtstr, fmt) in MIMEASSOCIATIONS; @eval begin #CODEGEN-----------------------
 
-Base.show(stream, ::MIME{Symbol($mtstr)}, f::File{$fmt}) = write(stream, readstring(f.path))
+Base.show(stream, ::MIME{Symbol($mtstr)}, f::File{$fmt}) = write(stream, read(f.path, String))
 
 end; end #CODEGEN---------------------------------------------------------------
 

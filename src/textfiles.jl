@@ -14,7 +14,7 @@ const splitter_csv = [' ', '\t', ',']
 
 #==Main data structures
 ===============================================================================#
-type TextReader{T<:TextFormat} <: AbstractReader{T}
+mutable struct TextReader{T<:TextFormat} <: AbstractReader{T}
 	s::IO
 	splitter
 	linebuf::Vector
@@ -27,7 +27,7 @@ end
 	TextReader{TextFormat{UnknownTextEncoding}}(s, splitter, linebuf)
 
 #Default splitter value:
-(RT::Type{T}){T<:TextReader}(s::IO, splitter = splitter_default) =
+(RT::Type{T})(s::IO, splitter = splitter_default) where T<:TextReader =
 	RT(s, splitter, String[])
 
 
@@ -52,31 +52,32 @@ end
 #==Open/read/close functions
 ===============================================================================#
 
-open{T<:TextReader}(RT::Type{T}, path::String, splitter = splitter_default) =
+open(RT::Type{T}, path::String, splitter = splitter_default) where T<:TextReader =
 	RT(open(path, "r"), splitter)
-open{T<:CSVFormat}(RT::Type{TextReader{T}}, path::String, splitter = splitter_csv) =
+open(RT::Type{TextReader{T}}, path::String, splitter = splitter_csv) where T<:CSVFormat =
 	RT(open(path, "r"), splitter)
 
 #Read in entire text file as string
-function read{T<:TextReader}(RT::Type{T}, path::String)
+function read(RT::Type{T}, path::String) where T<:TextReader
 	open(RT, path) do reader
-		return readstring(reader.s)
+		return read(reader.s, String)
 	end
 end
 
 #Read in next token as String:
-function read{DT<:AbstractString}(r::TextReader, ::Type{DT})
+function read(r::TextReader, ::Type{DT}) where DT<:AbstractString
 	refreshbuf(r)
-	v = shift!(r.linebuf)
+	v = popfirst!(r.linebuf)
 	try
 		#Read ahead if necessary (Update state for eof()):
 		refreshbuf(r)
+	catch
 	end
 	return v
 end
 
 #Read in next token & interpret as of type DT:
-function read{DT}(r::TextReader, ::Type{DT})
+function read(r::TextReader, ::Type{DT}) where DT
 	return parse(DT, read(r, String))
 end
 
@@ -97,9 +98,9 @@ function Base.readline(r::TextReader)
 	return readline(r.s)
 end
 
-function Base.readstring(r::TextReader)
+function Base.read(r::TextReader, String)
 	linebuf = []
-	return readstring(r.s)
+	return read(r.s, String)
 end
 
 #Last line
