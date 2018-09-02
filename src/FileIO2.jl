@@ -1,6 +1,5 @@
 #FileIO2: Method of categorizing/dispatching on data formats & files.
-__precompile__()
-
+__precompile__(true)
 module FileIO2
 
 import Base: open, read, write, close
