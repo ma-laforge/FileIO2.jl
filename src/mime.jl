@@ -4,17 +4,17 @@
 #==Constants
 ===============================================================================#
 #TODO: Not sure if mime type strings are correct.
-const MIMEASSOCIATIONS = Tuple{String,DataType}[
-	("image/bmp", BMPFmt),
-	("image/png", PNGFmt),
-	("image/gif", GIFFmt),
-	("image/jpeg", JPEGFmt),
-	("image/tiff", TIFFFmt),
+const MIMEASSOCIATIONS = Tuple{String,Symbol}[
+	("image/bmp", :BMPFmt),
+	("image/png", :PNGFmt),
+	("image/gif", :GIFFmt),
+	("image/jpeg", :JPEGFmt),
+	("image/tiff", :TIFFFmt),
 
-	("image/svg+xml", SVGFmt),
-	("image/cgm", CGMFmt),
-	("image/eps", EPSFmt),
-	("image/emf", EMFFmt),
+	("image/svg+xml", :SVGFmt),
+	("image/cgm", :CGMFmt),
+	("image/eps", :EPSFmt),
+	("image/emf", :EMFFmt),
 ]
 
 for (mtstr, fmt) in MIMEASSOCIATIONS; @eval begin #CODEGEN-----------------------
