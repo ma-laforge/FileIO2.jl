@@ -3,7 +3,7 @@
 
 #==Lists for code generation
 ===============================================================================#
-fmtsymblist = Symbol[] #List of sybols corresponding to DataFormat types
+const fmtsymblist = Symbol[] #List of sybols corresponding to DataFormat types
 
 
 #==Data encoding definitions
